@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv vllm/.git vllm/.git.bak)",
+      "Bash(mv vllm-ascend/.git vllm-ascend/.git.bak)"
+    ]
+  }
+}
