@@ -1,0 +1,1 @@
+出现了vllm-ascend适配gemma4精度太差的问题，咨询了技术专家，可以用dump的方式来找到和vllm基线的差异，具体怎么做呢，我给你gemma4.py源码，你帮我插进去吗，要求每一层都要插入，特别是第一层，要求：vllm起模型，单cur能保存下dump文件，使用tenser.save保存
