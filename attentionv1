@@ -1,3 +1,44 @@
+def dump_tensor(name: str, tensor: torch.Tensor, do_save: bool = False):
+    if tensor is None:
+        logger.info(f"[Layer {self.layer_idx}] [Device {device}] {name}: None")
+        return
+    
+    # 打印基本信息
+    info = (f"[Layer {self.layer_idx}] [Device {device}] {name} | "
+           f"Shape: {tuple(tensor.shape)} | Dtype: {tensor.dtype} | "
+           f"Device: {tensor.device}")
+    logger.info(info)
+    
+    # 打印统计信息（Mean/Std/Min/Max），处理 bfloat16
+    if tensor.numel() > 0:
+        # 转 float32 计算统计量，避免 bfloat16 在某些操作上的问题
+        stat_tensor = tensor.cpu().detach()
+        if stat_tensor.dtype == torch.bfloat16:
+            stat_tensor = stat_tensor.to(torch.float32)
+        
+        mean_val = stat_tensor.mean().item()
+        std_val = stat_tensor.std().item() if stat_tensor.numel() > 1 else 0.0
+        min_val = stat_tensor.min().item()
+        max_val = stat_tensor.max().item()
+        
+        logger.info(f"[Layer {self.layer_idx}] [Device {device}] {name} 统计: "
+                   f"Mean={mean_val:.6f} | Std={std_val:.6f} | "
+                   f"Min={min_val:.6f} | Max={max_val:.6f}")
+        
+        # 打印前5个元素的采样值，处理 bfloat16
+        sample_tensor = tensor.flatten()[:5].cpu().detach()
+        if sample_tensor.dtype == torch.bfloat16:
+            sample_tensor = sample_tensor.to(torch.float32)
+        sample = sample_tensor.tolist()
+        logger.info(f"[Layer {self.layer_idx}] [Device {device}] {name} 前5个元素: {sample}")
+    
+    # 可选：保存到pt文件（直接保存原始 dtype，不转 float32）
+    if do_save:
+        save_dir = f"./layer_{self.layer_idx}_dump"
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, f"{name.replace('/', '_').replace(' ', '_')}.pt")
+        torch.save(tensor.detach().cpu(), save_path)
+        logger.info(f"[Layer {self.layer_idx}] [Device {device}] {name} 已保存至: {save_path}")
 #
 # Copyright (c) 2025 Huawei Technologies Co., Ltd. All Rights Reserved.
 #
