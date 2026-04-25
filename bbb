@@ -1,0 +1,491 @@
+import os
+import argparse
+import torch
+import torch.nn.functional as F
+from collections import defaultdict
+from typing import Dict, Tuple, Optional
+
+def compute_cosine_similarity(tensor1: torch.Tensor, tensor2: torch.Tensor) -> Optional[float]:
+    """计算两个Tensor的余弦相似度（展平成一维后计算）"""
+    if tensor1.shape != tensor2.shape:
+        return None
+    try:
+        t1_flat = tensor1.flatten()
+        t2_flat = tensor2.flatten()
+        cos_sim = F.cosine_similarity(t1_flat.unsqueeze(0), t2_flat.unsqueeze(0), dim=1)
+        return cos_sim.item()
+    except Exception as e:
+        return None
+
+def compare_tensors(tensor1: torch.Tensor, tensor2: torch.Tensor, 
+                    rtol: float = 1e-05, atol: float = 1e-08) -> Dict:
+    """对比两个Tensor，返回差异指标（含余弦相似度）"""
+    result = {
+        "allclose": False,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0,
+        "cosine_similarity": None,
+        "shape_match": True,
+        "dtype_match": True
+    }
+    
+    if tensor1.shape != tensor2.shape:
+        result["shape_match"] = False
+        result["shape1"] = tuple(tensor1.shape)
+        result["shape2"] = tuple(tensor2.shape)
+        return result
+    
+    if tensor1.dtype != tensor2.dtype:
+        result["dtype_match"] = False
+        result["dtype1"] = str(tensor1.dtype)
+        result["dtype2"] = str(tensor2.dtype)
+    
+    result["cosine_similarity"] = compute_cosine_similarity(tensor1, tensor2)
+    
+    try:
+        abs_error = torch.abs(tensor1 - tensor2)
+        result["max_abs_error"] = abs_error.max().item()
+        result["mean_abs_error"] = abs_error.mean().item()
+        result["allclose"] = torch.allclose(tensor1, tensor2, rtol=rtol, atol=atol)
+    except Exception as e:
+        result["error"] = str(e)
+    
+    return result
+
+def print_raw_input_data(t1: torch.Tensor, t2: torch.Tensor, name: str, max_print: int = 50):
+    """打印原始输入数据（如input_ids）"""
+    lines = []
+    lines.append(f"\n   📝 {name} 原始数据:")
+    lines.append(f"   --------------------------------------------------")
+    
+    # 打印形状和类型
+    lines.append(f"   基线 Shape: {tuple(t1.shape)} | Dtype: {t1.dtype}")
+    lines.append(f"   测试 Shape: {tuple(t2.shape)} | Dtype: {t2.dtype}")
+    lines.append(f"   --------------------------------------------------")
+    
+    # 打印数据内容
+    t1_flat = t1.flatten().tolist()
+    t2_flat = t2.flatten().tolist()
+    
+    # 截断显示
+    show_len = min(max_print, len(t1_flat), len(t2_flat))
+    t1_show = t1_flat[:show_len]
+    t2_show = t2_flat[:show_len]
+    
+    lines.append(f"   基线数据 (前{show_len}个): {t1_show}")
+    lines.append(f"   测试数据 (前{show_len}个): {t2_show}")
+    
+    if len(t1_flat) > show_len or len(t2_flat) > show_len:
+        lines.append(f"   ... (数据过长，仅显示前{show_len}个)")
+    
+    lines.append(f"   --------------------------------------------------")
+    return lines
+
+def print_embedding_data(t1: torch.Tensor, t2: torch.Tensor, max_rows: int = 3, max_cols: int = 10):
+    """打印Embedding编码后的数据（前几行前几列）"""
+    lines = []
+    lines.append(f"\n   📝 Embedding编码后的数据 (前{max_rows}行, 前{max_cols}列):")
+    lines.append(f"   --------------------------------------------------")
+    
+    # 打印形状
+    lines.append(f"   基线 Shape: {tuple(t1.shape)} | Dtype: {t1.dtype}")
+    lines.append(f"   测试 Shape: {tuple(t2.shape)} | Dtype: {t2.dtype}")
+    lines.append(f"   --------------------------------------------------")
+    
+    # 处理高维数据，取前两个维度
+    t1_2d = t1.reshape(-1, t1.shape[-1]) if t1.dim() > 2 else t1
+    t2_2d = t2.reshape(-1, t2.shape[-1]) if t2.dim() > 2 else t2
+    
+    rows_to_show = min(max_rows, t1_2d.shape[0], t2_2d.shape[0])
+    cols_to_show = min(max_cols, t1_2d.shape[1], t2_2d.shape[1])
+    
+    for i in range(rows_to_show):
+        lines.append(f"   --- 第 {i} 行 ---")
+        # 格式化打印，保留6位小数
+        t1_row = [f"{x:.6f}" for x in t1_2d[i, :cols_to_show].tolist()]
+        t2_row = [f"{x:.6f}" for x in t2_2d[i, :cols_to_show].tolist()]
+        
+        lines.append(f"   基线: [{', '.join(t1_row)}" + (f", ... (共{t1_2d.shape[1]}列)]" if cols_to_show < t1_2d.shape[1] else "]"))
+        lines.append(f"   测试: [{', '.join(t2_row)}" + (f", ... (共{t2_2d.shape[1]}列)]" if cols_to_show < t2_2d.shape[1] else "]"))
+        
+        # 计算这一行的误差
+        row_error = torch.abs(t1_2d[i, :cols_to_show] - t2_2d[i, :cols_to_show]).max().item()
+        lines.append(f"   该行最大误差: {row_error:.8e}")
+        lines.append("")
+    
+    if t1_2d.shape[0] > rows_to_show:
+        lines.append(f"   ... (共{t1_2d.shape[0]}行，仅显示前{rows_to_show}行)")
+    
+    lines.append(f"   --------------------------------------------------")
+    return lines
+
+def print_input_differences(t1: torch.Tensor, t2: torch.Tensor, name: str, max_print: int = 20):
+    """打印输入层的具体差异值"""
+    lines = []
+    lines.append(f"\n   📊 {name} 具体差异详情 (最多显示{max_print}个):")
+    
+    if t1.shape != t2.shape:
+        lines.append(f"   ❌ 形状不匹配: 基线{t1.shape} vs 测试{t2.shape}")
+        return lines
+    
+    # 找出所有差异位置
+    diff_mask = t1 != t2
+    diff_indices = torch.nonzero(diff_mask, as_tuple=True)
+    diff_count = diff_mask.sum().item()
+    
+    if diff_count == 0:
+        lines.append("   ✅ 完全一致，无任何差异")
+        return lines
+    
+    lines.append(f"   ⚠️  总共有 {diff_count} 个位置存在差异")
+    lines.append("   --------------------------------------------------")
+    lines.append(f"   {'索引':<10} | {'基线值':<10} | {'测试值':<10} | {'绝对误差':<10}")
+    lines.append("   --------------------------------------------------")
+    
+    # 只打印前max_print个差异
+    for i in range(min(diff_count, max_print)):
+        idx = tuple(dim[i].item() for dim in diff_indices)
+        val1 = t1[idx].item()
+        val2 = t2[idx].item()
+        abs_err = abs(val1 - val2)
+        
+        # 格式化索引显示
+        idx_str = str(idx) if len(idx) > 1 else str(idx[0])
+        lines.append(f"   {idx_str:<10} | {val1:<10} | {val2:<10} | {abs_err:<10.6f}")
+    
+    if diff_count > max_print:
+        lines.append(f"   ... 还有 {diff_count - max_print} 个差异未显示")
+    
+    lines.append("   --------------------------------------------------")
+    return lines
+
+def print_embedding_differences(t1: torch.Tensor, t2: torch.Tensor, max_print: int = 10):
+    """打印Embedding层的具体差异值（误差最大的前N个）"""
+    lines = []
+    lines.append(f"\n   📊 Embedding输出具体差异详情 (误差最大的{max_print}个):")
+    
+    if t1.shape != t2.shape:
+        lines.append(f"   ❌ 形状不匹配: 基线{t1.shape} vs 测试{t2.shape}")
+        return lines
+    
+    # 计算绝对误差
+    abs_error = torch.abs(t1 - t2)
+    max_err = abs_error.max().item()
+    
+    if max_err < 1e-10:
+        lines.append("   ✅ 完全一致，无任何差异")
+        return lines
+    
+    # 找出误差最大的前N个位置
+    flat_error = abs_error.flatten()
+    topk_errors, topk_indices = torch.topk(flat_error, k=min(max_print, flat_error.numel()))
+    
+    lines.append(f"   ⚠️  最大绝对误差: {max_err:.8e}")
+    lines.append("   --------------------------------------------------")
+    lines.append(f"   {'索引':<15} | {'基线值':<12} | {'测试值':<12} | {'绝对误差':<12}")
+    lines.append("   --------------------------------------------------")
+    
+    for i in range(len(topk_errors)):
+        flat_idx = topk_indices[i].item()
+        # 转换为多维索引
+        multi_idx = []
+        remaining = flat_idx
+        for dim_size in reversed(t1.shape):
+            multi_idx.append(remaining % dim_size)
+            remaining = remaining // dim_size
+        multi_idx = tuple(reversed(multi_idx))
+        
+        val1 = t1[multi_idx].item()
+        val2 = t2[multi_idx].item()
+        err = topk_errors[i].item()
+        
+        idx_str = str(multi_idx)
+        lines.append(f"   {idx_str:<15} | {val1:<12.6f} | {val2:<12.6f} | {err:<12.8e}")
+    
+    lines.append("   --------------------------------------------------")
+    return lines
+
+def main():
+    parser = argparse.ArgumentParser(description="Gemma4 Dump文件精度对比工具（原始数据打印版）")
+    parser.add_argument("--baseline_dir", type=str, required=True, 
+                        help="基线（GPU/正确版本）的Dump目录路径")
+    parser.add_argument("--test_dir", type=str, required=True, 
+                        help="测试版（NPU/待验证）的Dump目录路径")
+    parser.add_argument("--rtol", type=float, default=1e-05, 
+                        help="allclose的相对容差，默认1e-05")
+    parser.add_argument("--atol", type=float, default=1e-08, 
+                        help="allclose的绝对容差，默认1e-08")
+    parser.add_argument("--output", type=str, default="gemma4_diff_report.txt",
+                        help="差异报告保存路径，默认gemma4_diff_report.txt")
+    parser.add_argument("--max_diff_print", type=int, default=20,
+                        help="最多打印多少个差异值，默认20")
+    parser.add_argument("--max_data_print", type=int, default=50,
+                        help="最多打印多少个原始数据，默认50")
+    
+    args = parser.parse_args()
+    
+    if not os.path.exists(args.baseline_dir):
+        print(f"❌ 基线目录不存在: {args.baseline_dir}")
+        return
+    if not os.path.exists(args.test_dir):
+        print(f"❌ 测试目录不存在: {args.test_dir}")
+        return
+    
+    baseline_files = set([f for f in os.listdir(args.baseline_dir) if f.endswith(".pt")])
+    test_files = set([f for f in os.listdir(args.test_dir) if f.endswith(".pt")])
+    
+    common_files = baseline_files & test_files
+    only_baseline = baseline_files - test_files
+    only_test = test_files - baseline_files
+    
+    print("="*80)
+    print("📊 Gemma4 精度对比工具（原始数据打印版）")
+    print(f"基线目录: {args.baseline_dir}")
+    print(f"测试目录: {args.test_dir}")
+    print(f"容差设置: rtol={args.rtol}, atol={args.atol}")
+    print("="*80)
+    
+    results = []
+    layer_results = defaultdict(dict)
+    input_layer_results = {}
+    all_layer_files = defaultdict(list)
+    
+    for filename in common_files:
+        baseline_path = os.path.join(args.baseline_dir, filename)
+        test_path = os.path.join(args.test_dir, filename)
+        
+        try:
+            tensor_baseline = torch.load(baseline_path, map_location="cpu")
+            tensor_test = torch.load(test_path, map_location="cpu")
+        except Exception as e:
+            print(f"⚠️ 加载文件失败 {filename}: {e}")
+            continue
+        
+        comp_result = compare_tensors(tensor_baseline, tensor_test, args.rtol, args.atol)
+        comp_result["filename"] = filename
+        comp_result["baseline_tensor"] = tensor_baseline
+        comp_result["test_tensor"] = tensor_test
+        results.append(comp_result)
+        
+        # 收集输入层
+        if "global_model_input_ids" in filename or "global_model_embedding_output" in filename:
+            input_layer_results[filename] = comp_result
+        
+        # 收集层文件
+        if filename.startswith("layer"):
+            layer_idx = filename.split("_")[0].replace("layer", "")
+            all_layer_files[layer_idx].append(comp_result)
+            if layer_idx not in layer_results:
+                layer_results[layer_idx] = {"files": [], "max_error": 0.0, "min_cos_sim": 1.0}
+            layer_results[layer_idx]["files"].append(comp_result)
+            if comp_result["max_abs_error"] > layer_results[layer_idx]["max_error"]:
+                layer_results[layer_idx]["max_error"] = comp_result["max_abs_error"]
+            if comp_result["cosine_similarity"] is not None and comp_result["cosine_similarity"] < layer_results[layer_idx]["min_cos_sim"]:
+                layer_results[layer_idx]["min_cos_sim"] = comp_result["cosine_similarity"]
+    
+    # 生成报告
+    report_lines = []
+    report_lines.append("="*80)
+    report_lines.append("📊 Gemma4 精度差异报告（原始数据打印版）")
+    report_lines.append("="*80)
+    report_lines.append(f"基线目录: {args.baseline_dir}")
+    report_lines.append(f"测试目录: {args.test_dir}")
+    report_lines.append(f"容差设置: rtol={args.rtol}, atol={args.atol}")
+    report_lines.append("")
+    report_lines.append("📌 指标说明:")
+    report_lines.append("  - MaxAbsErr: 最大绝对误差（越小越好）")
+    report_lines.append("  - MeanAbsErr: 平均绝对误差（越小越好）")
+    report_lines.append("  - CosineSim: 余弦相似度（越接近1越好，范围[-1,1]）")
+    report_lines.append("")
+    
+    # ====================== 1. 最高优先级：输入层完整验证 + 原始数据打印 ======================
+    report_lines.append("="*80)
+    report_lines.append("🔴 🔴 🔴 最高优先级：输入层完整验证 🔴 🔴 🔴")
+    report_lines.append("="*80)
+    report_lines.append("⚠️  重要提示：输入层理论上应该完全一致，不应该有任何误差！")
+    report_lines.append("")
+    
+    # 1.1 Token ID 验证 + 原始数据打印 + 差异
+    input_ids_file = "global_model_input_ids.pt"
+    if input_ids_file in input_layer_results:
+        r = input_layer_results[input_ids_file]
+        report_lines.append("1️⃣  原始Token ID (global_model_input_ids.pt)")
+        report_lines.append("   理论要求：✅ 必须完全一致 (torch.equal == True)")
+        
+        if r["shape_match"]:
+            t1 = r["baseline_tensor"]
+            t2 = r["test_tensor"]
+            is_exact_equal = torch.equal(t1, t2)
+            
+            # 【新增】打印原始数据
+            raw_data_lines = print_raw_input_data(t1, t2, "Token ID", args.max_data_print)
+            report_lines.extend(raw_data_lines)
+            
+            if is_exact_equal:
+                report_lines.append("   ✅✅✅ Token ID 完全一致！输入没问题！")
+            else:
+                report_lines.append("   ❌❌❌ Token ID 不一致！！！问题出在Tokenizer/输入处理！")
+                # 打印具体差异
+                diff_lines = print_input_differences(t1, t2, "Token ID", args.max_diff_print)
+                report_lines.extend(diff_lines)
+        else:
+            report_lines.append(f"   ❌❌❌ 形状不匹配！基线: {r['shape1']} vs 测试: {r['shape2']}")
+    else:
+        report_lines.append("1️⃣  原始Token ID (global_model_input_ids.pt)")
+        report_lines.append("   ⚠️  文件不存在，无法验证！")
+    
+    report_lines.append("")
+    
+    # 1.2 Embedding输出验证 + 原始数据打印 + 差异
+    embed_file = "global_model_embedding_output.pt"
+    if embed_file in input_layer_results:
+        r = input_layer_results[embed_file]
+        report_lines.append("2️⃣  词嵌入层输出 (global_model_embedding_output.pt)")
+        report_lines.append("   理论要求：✅ 误差极小 (MaxAbsErr < 1e-6, CosineSim > 0.999999)")
+        
+        status = "✅" if r["allclose"] else "❌"
+        if not r["shape_match"]:
+            report_lines.append(f"   {status} 形状不匹配！基线: {r['shape1']} vs 测试: {r['shape2']}")
+        else:
+            cos_sim_str = f"{r['cosine_similarity']:.8f}" if r["cosine_similarity"] is not None else "N/A"
+            
+            if r["cosine_similarity"] is not None and r["cosine_similarity"] > 0.999999 and r["max_abs_error"] < 1e-6:
+                embed_status = "✅✅✅ 词嵌入层一致性极好！"
+            elif r["cosine_similarity"] is not None and r["cosine_similarity"] > 0.999:
+                embed_status = "🟡 词嵌入层有轻微误差，可能是精度舍入问题"
+            else:
+                embed_status = "❌❌❌ 词嵌入层误差很大！问题出在Embedding层/权重加载！"
+            
+            report_lines.append(f"   {status} {embed_status}")
+            report_lines.append(f"   MaxAbsErr: {r['max_abs_error']:.8e} | MeanAbsErr: {r['mean_abs_error']:.8e} | CosineSim: {cos_sim_str}")
+            
+            # 【新增】打印Embedding编码后的原始数据
+            embed_data_lines = print_embedding_data(r["baseline_tensor"], r["test_tensor"])
+            report_lines.extend(embed_data_lines)
+            
+            # 如果有误差，打印具体差异
+            if r["max_abs_error"] > 1e-10:
+                diff_lines = print_embedding_differences(r["baseline_tensor"], r["test_tensor"], args.max_diff_print)
+                report_lines.extend(diff_lines)
+    else:
+        report_lines.append("2️⃣  词嵌入层输出 (global_model_embedding_output.pt)")
+        report_lines.append("   ⚠️  文件不存在，无法验证！")
+    
+    # 1.3 其他全局文件
+    other_global_files = [r for r in results if r["filename"].startswith("global_") 
+                         and r["filename"] not in [input_ids_file, embed_file]]
+    if other_global_files:
+        report_lines.append("")
+        report_lines.append("3️⃣  其他全局文件:")
+        for r in sorted(other_global_files, key=lambda x: x["filename"]):
+            status = "✅" if r["allclose"] else "❌"
+            line = f"   {status} {r['filename']}"
+            if not r["shape_match"]:
+                line += f" | ⚠️  形状不匹配"
+            else:
+                cos_sim_str = f"{r['cosine_similarity']:.6f}" if r["cosine_similarity"] is not None else "N/A"
+                line += f" | MaxAbsErr: {r['max_abs_error']:.6e} | CosineSim: {cos_sim_str}"
+            report_lines.append(line)
+    
+    report_lines.append("")
+    report_lines.append("="*80)
+    report_lines.append("")
+    
+    # ====================== 2. 按层完整对比 ======================
+    report_lines.append("="*80)
+    report_lines.append("📚 按层完整对比（从Layer 0开始）")
+    report_lines.append("="*80)
+    
+    sorted_layer_indices = sorted(all_layer_files.keys(), key=lambda x: float(x) if x.replace("-", "").isdigit() else float('inf'))
+    
+    for layer_idx in sorted_layer_indices:
+        layer_files = all_layer_files[layer_idx]
+        
+        report_lines.append("")
+        report_lines.append(f"────────────────────────────────────────────────────────────")
+        report_lines.append(f"📍 Layer {layer_idx}")
+        
+        if layer_idx in layer_results:
+            max_err = layer_results[layer_idx]["max_error"]
+            min_cos_sim = layer_results[layer_idx]["min_cos_sim"]
+            err_marker = "🔴" if max_err > 1e-3 else ("🟡" if max_err > 1e-5 else "🟢")
+            cos_marker = "🔴" if min_cos_sim < 0.999 else ("🟡" if min_cos_sim < 0.9999 else "🟢")
+            cos_sim_str = f"{min_cos_sim:.6f}" if min_cos_sim != 1.0 else "N/A"
+            report_lines.append(f"   汇总指标: {err_marker} MaxAbsErr={max_err:.6e} | {cos_marker} MinCosineSim={cos_sim_str}")
+        
+        report_lines.append(f"   该层文件数: {len(layer_files)}")
+        report_lines.append("")
+        
+        for r in sorted(layer_files, key=lambda x: x["filename"]):
+            status = "✅" if r["allclose"] else "❌"
+            short_name = r["filename"].replace(f"layer{layer_idx}_", "")
+            line = f"   {status} {short_name}"
+            
+            if not r["shape_match"]:
+                line += f" | ⚠️  形状不匹配"
+            else:
+                cos_sim_str = f"{r['cosine_similarity']:.6f}" if r["cosine_similarity"] is not None else "N/A"
+                line += f" | MaxAbsErr: {r['max_abs_error']:.6e} | CosineSim: {cos_sim_str}"
+            report_lines.append(line)
+    
+    report_lines.append("")
+    report_lines.append("="*80)
+    report_lines.append("")
+    
+    # ====================== 3. 统计信息 ======================
+    total_files = len(common_files)
+    passed_files = sum(1 for r in results if r["allclose"])
+    failed_files = total_files - passed_files
+    
+    report_lines.append(f"📈 统计汇总:")
+    report_lines.append(f"  共同文件数: {total_files}")
+    report_lines.append(f"  ✅ 通过allclose: {passed_files}")
+    report_lines.append(f"  ❌ 未通过allclose: {failed_files}")
+    if only_baseline:
+        report_lines.append(f"  ⚠️  仅基线存在的文件: {len(only_baseline)} (如: {list(only_baseline)[:3]})")
+    if only_test:
+        report_lines.append(f"  ⚠️  仅测试存在的文件: {len(only_test)} (如: {list(only_test)[:3]})")
+    report_lines.append("")
+    
+    # ====================== 4. 快速问题定位 ======================
+    report_lines.append("="*80)
+    report_lines.append("🔥 快速问题定位")
+    report_lines.append("="*80)
+    
+    report_lines.append("")
+    report_lines.append("1️⃣  余弦相似度最低的文件 (Top 20)")
+    sorted_by_cos = sorted([r for r in results if r["cosine_similarity"] is not None], 
+                          key=lambda x: x["cosine_similarity"])
+    for i, r in enumerate(sorted_by_cos[:20]):
+        status = "✅" if r["allclose"] else "❌"
+        cos_sim_str = f"{r['cosine_similarity']:.6f}"
+        line = f"   {i+1:2d}. {status} {r['filename']} | CosineSim: {cos_sim_str}"
+        if r["shape_match"]:
+            line += f" | MaxAbsErr: {r['max_abs_error']:.6e}"
+        report_lines.append(line)
+    
+    report_lines.append("")
+    report_lines.append("2️⃣  最大绝对误差最大的文件 (Top 20)")
+    sorted_results = sorted(results, key=lambda x: x.get("max_abs_error", 0), reverse=True)
+    for i, r in enumerate(sorted_results[:20]):
+        status = "✅" if r["allclose"] else "❌"
+        line = f"   {i+1:2d}. {status} {r['filename']}"
+        if not r["shape_match"]:
+            line += f" | ⚠️  形状不匹配"
+        else:
+            cos_sim_str = f"{r['cosine_similarity']:.6f}" if r["cosine_similarity"] is not None else "N/A"
+            line += f" | MaxAbsErr: {r['max_abs_error']:.6e} | CosineSim: {cos_sim_str}"
+        report_lines.append(line)
+    
+    # 保存报告
+    with open(args.output, "w", encoding="utf-8") as f:
+        f.write("\n".join(report_lines))
+    
+    # 打印到终端
+    print("\n".join(report_lines))
+    print("\n" + "="*80)
+    print(f"✅ 对比完成！详细报告已保存至: {args.output}")
+    print("="*80)
+
+if __name__ == "__main__":
+    main()
