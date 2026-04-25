@@ -1,0 +1,146 @@
+def _forward_fia_fullattention(
+    self,
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    attn_metadata: AscendMetadata,
+    output: torch.Tensor,
+):
+    # ========== 【强制调试】不管 layer_idx，先打印一行，确认走到这个函数了 ==========
+    import os
+    import sys
+    print("=" * 100, file=sys.stderr)
+    print(f"[DEBUG] 进入 _forward_fia_fullattention 函数！", file=sys.stderr)
+    
+    # 尝试获取 layer_idx，如果没有就设为 -1
+    layer_idx = getattr(self, 'layer_idx', -1)
+    device = query.device
+    print(f"[DEBUG] layer_idx = {layer_idx}, device = {device}", file=sys.stderr)
+    
+    # ========== 0. 快速返回：非目标层不dump（但先打印确认） ==========
+    # 【修改】如果你想强制所有层都dump，把下面这行注释掉
+    if layer_idx != 15:
+        print(f"[DEBUG] layer_idx {layer_idx} 不是目标层(15)，快速返回", file=sys.stderr)
+        print("=" * 100, file=sys.stderr)
+        # 执行原逻辑
+        batch_size = 1
+        seq_q, num_q_heads, head_dim = query.shape
+        seq_kv, num_kv_heads, _ = key.shape
+        query_bsh = query.view(batch_size, seq_q, num_q_heads * head_dim)
+        key_bsh = key.view(batch_size, seq_kv, num_kv_heads * head_dim)
+        value_bsh = value.view(batch_size, seq_kv, num_kv_heads * head_dim)
+        attn_output, _ = torch_npu.npu_fused_infer_attention_score(
+            query_bsh, key_bsh, value_bsh,
+            num_heads=self.num_heads, num_key_value_heads=self.num_kv_heads,
+            input_layout="BSH", atten_mask=attn_metadata.attn_mask,
+            scale=self.scale, sparse_mode=3,
+        )
+        attn_output = attn_output.view(seq_q, self.num_heads, self.head_size)
+        output[:seq_q] = attn_output[:seq_q]
+        return output
+
+    # ========== 1. 目标层（Layer15）开始dump ==========
+    print(f"[DEBUG] 目标层 Layer {layer_idx}，开始详细dump", file=sys.stderr)
+
+    # 辅助函数：直接 print
+    def log(msg):
+        print(f"[Layer {layer_idx}] [Device {device}] {msg}", file=sys.stderr)
+
+    log("=" * 80)
+    log("开始执行_forward_fia_fullattention")
+    log(f"当前层数：{layer_idx} | 设备类型：{device} | 是否NPU：{device.type == 'npu'}")
+
+    # ========== 2. 简化版 dump_tensor（直接 print + 保存） ==========
+    def dump_and_save(name: str, tensor: torch.Tensor, do_save: bool = True):
+        if tensor is None:
+            log(f"{name}: None")
+            return
+        
+        # 打印基本信息
+        log(f"{name} | Shape: {tuple(tensor.shape)} | Dtype: {tensor.dtype}")
+        
+        # 打印统计信息（处理 bfloat16）
+        if tensor.numel() > 0:
+            stat_tensor = tensor.cpu().detach()
+            if stat_tensor.dtype == torch.bfloat16:
+                stat_tensor = stat_tensor.to(torch.float32)
+            
+            mean_val = stat_tensor.mean().item()
+            std_val = stat_tensor.std().item() if stat_tensor.numel() > 1 else 0.0
+            min_val = stat_tensor.min().item()
+            max_val = stat_tensor.max().item()
+            
+            log(f"{name} 统计: Mean={mean_val:.6f} | Std={std_val:.6f} | Min={min_val:.6f} | Max={max_val:.6f}")
+            
+            # 打印前5个元素
+            sample_tensor = tensor.flatten()[:5].cpu().detach()
+            if sample_tensor.dtype == torch.bfloat16:
+                sample_tensor = sample_tensor.to(torch.float32)
+            log(f"{name} 前5个: {sample_tensor.tolist()}")
+        
+        # 保存 pt 文件
+        if do_save:
+            save_dir = f"./layer_{layer_idx}_dump"
+            os.makedirs(save_dir, exist_ok=True)
+            save_path = os.path.join(save_dir, f"{name.replace('/', '_').replace(' ', '_')}.pt")
+            torch.save(tensor.detach().cpu(), save_path)
+            log(f"{name} 已保存至: {save_path}")
+
+    # ========== 3. 开始 dump ==========
+    log("-" * 60)
+    log("【1/6】算子输入前 - 原始Tensor")
+    dump_and_save("01_Query_Input", query)
+    dump_and_save("02_Key_Input", key)
+    dump_and_save("03_Value_Input", value)
+    dump_and_save("04_Output_Init", output, do_save=False)
+
+    log("-" * 60)
+    log("【2/6】AttnMetadata")
+    dump_and_save("05_attn_mask", attn_metadata.attn_mask)
+    log(f"causal: {attn_metadata.causal} | attn_state: {attn_metadata.attn_state}")
+    log(f"seq_lens: {attn_metadata.seq_lens} | num_actual_tokens: {attn_metadata.num_actual_tokens}")
+
+    log("-" * 60)
+    log("【3/6】Reshape 为 BSH 格式")
+    batch_size = 1
+    seq_q, num_q_heads, head_dim = query.shape
+    seq_kv, num_kv_heads, _ = key.shape
+    query_bsh = query.view(batch_size, seq_q, num_q_heads * head_dim)
+    key_bsh = key.view(batch_size, seq_kv, num_kv_heads * head_dim)
+    value_bsh = value.view(batch_size, seq_kv, num_kv_heads * head_dim)
+    
+    dump_and_save("06_Query_BSH", query_bsh)
+    dump_and_save("07_Key_BSH", key_bsh)
+    dump_and_save("08_Value_BSH", value_bsh)
+
+    log("-" * 60)
+    log("【4/6】算子参数")
+    log(f"num_heads: {self.num_heads}")
+    log(f"num_key_value_heads: {self.num_kv_heads}")
+    log(f"input_layout: BSH")
+    log(f"scale: {self.scale}")
+    log(f"sparse_mode: 3")
+
+    log("-" * 60)
+    log("【5/6】执行 npu_fused_infer_attention_score 算子")
+    attn_output, _ = torch_npu.npu_fused_infer_attention_score(
+        query_bsh, key_bsh, value_bsh,
+        num_heads=self.num_heads, num_key_value_heads=self.num_kv_heads,
+        input_layout="BSH", atten_mask=attn_metadata.attn_mask,
+        scale=self.scale, sparse_mode=3,
+    )
+    log("算子执行完成")
+    dump_and_save("09_Attn_Output_Raw", attn_output)
+
+    log("-" * 60)
+    log("【6/6】最终 Reshape 和赋值")
+    attn_output = attn_output.view(seq_q, self.num_heads, self.head_size)
+    dump_and_save("10_Attn_Output_Reshaped", attn_output)
+    output[:seq_q] = attn_output[:seq_q]
+    dump_and_save("11_Output_Final", output)
+
+    log("=" * 80)
+    log(f"执行完成，文件保存在: ./layer_{layer_idx}_dump/")
+    print("=" * 100, file=sys.stderr)
+
+    return output
