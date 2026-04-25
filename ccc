@@ -1,0 +1,182 @@
+import os
+import argparse
+import torch
+import torch.nn.functional as F
+from collections import defaultdict
+from typing import Dict, Tuple, Optional
+
+def compute_cosine_similarity(tensor1: torch.Tensor, tensor2: torch.Tensor) -> Optional[float]:
+    if tensor1.shape != tensor2.shape:
+        return None
+    try:
+        t1_flat = tensor1.flatten()
+        t2_flat = tensor2.flatten()
+        cos_sim = F.cosine_similarity(t1_flat.unsqueeze(0), t2_flat.unsqueeze(0), dim=1)
+        return cos_sim.item()
+    except Exception as e:
+        return None
+
+def compare_tensors(tensor1: torch.Tensor, tensor2: torch.Tensor, 
+                    rtol: float = 1e-05, atol: float = 1e-08) -> Dict:
+    result = {
+        "allclose": False,
+        "max_abs_error": 0.0,
+        "mean_abs_error": 0.0,
+        "cosine_similarity": None,
+        "shape_match": True,
+        "dtype_match": True
+    }
+    
+    if tensor1.shape != tensor2.shape:
+        result["shape_match"] = False
+        result["shape1"] = tuple(tensor1.shape)
+        result["shape2"] = tuple(tensor2.shape)
+        return result
+    
+    if tensor1.dtype != tensor2.dtype:
+        result["dtype_match"] = False
+        result["dtype1"] = str(tensor1.dtype)
+        result["dtype2"] = str(tensor2.dtype)
+    
+    result["cosine_similarity"] = compute_cosine_similarity(tensor1, tensor2)
+    
+    try:
+        abs_error = torch.abs(tensor1 - tensor2)
+        result["max_abs_error"] = abs_error.max().item()
+        result["mean_abs_error"] = abs_error.mean().item()
+        result["allclose"] = torch.allclose(tensor1, tensor2, rtol=rtol, atol=atol)
+    except Exception as e:
+        result["error"] = str(e)
+    
+    return result
+
+def print_global_input_ids_data(t1: torch.Tensor, t2: torch.Tensor, max_print: int = 100):
+    """专门打印 global_model_input_ids.pt 的数据"""
+    lines = []
+    lines.append("")
+    lines.append("="*80)
+    lines.append("📢📢📢 专门打印：global_model_input_ids.pt 原始数据 📢📢📢")
+    lines.append("="*80)
+    
+    # 打印形状和类型
+    lines.append(f"【基线】 Shape: {tuple(t1.shape)} | Dtype: {t1.dtype}")
+    lines.append(f"【测试】 Shape: {tuple(t2.shape)} | Dtype: {t2.dtype}")
+    lines.append("-" * 80)
+    
+    # 打印完整数据（展平）
+    t1_flat = t1.flatten().tolist()
+    t2_flat = t2.flatten().tolist()
+    
+    show_len = min(max_print, len(t1_flat), len(t2_flat))
+    
+    lines.append(f"【基线】完整 Token ID 序列 (前{show_len}个):")
+    lines.append(f"   {t1_flat[:show_len]}")
+    lines.append("")
+    lines.append(f"【测试】完整 Token ID 序列 (前{show_len}个):")
+    lines.append(f"   {t2_flat[:show_len]}")
+    
+    if len(t1_flat) > show_len or len(t2_flat) > show_len:
+        lines.append("")
+        lines.append(f"   ... (数据过长，仅显示前{show_len}个，完整长度: 基线={len(t1_flat)}, 测试={len(t2_flat)})")
+    
+    lines.append("="*80)
+    lines.append("")
+    return lines
+
+def print_input_differences(t1: torch.Tensor, t2: torch.Tensor, name: str, max_print: int = 20):
+    lines = []
+    lines.append(f"\n   📊 {name} 具体差异详情 (最多显示{max_print}个):")
+    
+    if t1.shape != t2.shape:
+        lines.append(f"   ❌ 形状不匹配: 基线{t1.shape} vs 测试{t2.shape}")
+        return lines
+    
+    diff_mask = t1 != t2
+    diff_indices = torch.nonzero(diff_mask, as_tuple=True)
+    diff_count = diff_mask.sum().item()
+    
+    if diff_count == 0:
+        lines.append("   ✅ 完全一致，无任何差异")
+        return lines
+    
+    lines.append(f"   ⚠️  总共有 {diff_count} 个位置存在差异")
+    lines.append("   --------------------------------------------------")
+    lines.append(f"   {'索引':<10} | {'基线值':<10} | {'测试值':<10} | {'绝对误差':<10}")
+    lines.append("   --------------------------------------------------")
+    
+    for i in range(min(diff_count, max_print)):
+        idx = tuple(dim[i].item() for dim in diff_indices)
+        val1 = t1[idx].item()
+        val2 = t2[idx].item()
+        abs_err = abs(val1 - val2)
+        
+        idx_str = str(idx) if len(idx) > 1 else str(idx[0])
+        lines.append(f"   {idx_str:<10} | {val1:<10} | {val2:<10} | {abs_err:<10.6f}")
+    
+    if diff_count > max_print:
+        lines.append(f"   ... 还有 {diff_count - max_print} 个差异未显示")
+    
+    lines.append("   --------------------------------------------------")
+    return lines
+
+def main():
+    parser = argparse.ArgumentParser(description="Gemma4 对比工具（专门打印 input_ids）")
+    parser.add_argument("--baseline_dir", type=str, required=True)
+    parser.add_argument("--test_dir", type=str, required=True)
+    parser.add_argument("--max_data_print", type=int, default=100,
+                        help="最多打印多少个 input_ids，默认100")
+    parser.add_argument("--output", type=str, default="gemma4_input_ids_report.txt")
+    
+    args = parser.parse_args()
+    
+    if not os.path.exists(args.baseline_dir):
+        print(f"❌ 基线目录不存在: {args.baseline_dir}")
+        return
+    if not os.path.exists(args.test_dir):
+        print(f"❌ 测试目录不存在: {args.test_dir}")
+        return
+    
+    # 专门加载 input_ids 文件
+    input_ids_file = "global_model_input_ids.pt"
+    baseline_path = os.path.join(args.baseline_dir, input_ids_file)
+    test_path = os.path.join(args.test_dir, input_ids_file)
+    
+    report_lines = []
+    
+    if os.path.exists(baseline_path) and os.path.exists(test_path):
+        t1 = torch.load(baseline_path, map_location="cpu")
+        t2 = torch.load(test_path, map_location="cpu")
+        
+        # 1. 专门打印 input_ids 数据
+        data_lines = print_global_input_ids_data(t1, t2, args.max_data_print)
+        report_lines.extend(data_lines)
+        
+        # 2. 检查是否完全一致
+        is_exact_equal = torch.equal(t1, t2)
+        report_lines.append("")
+        report_lines.append("🔍 一致性检查结果:")
+        if is_exact_equal:
+            report_lines.append("   ✅✅✅ 完美！global_model_input_ids.pt 两边完全一致！")
+        else:
+            report_lines.append("   ❌❌❌ 不一致！问题出在输入/Tokenizer！")
+            # 打印差异
+            diff_lines = print_input_differences(t1, t2, "Token ID")
+            report_lines.extend(diff_lines)
+    else:
+        report_lines.append("❌ 未找到 global_model_input_ids.pt 文件！")
+        if not os.path.exists(baseline_path):
+            report_lines.append(f"   基线缺失: {baseline_path}")
+        if not os.path.exists(test_path):
+            report_lines.append(f"   测试缺失: {test_path}")
+    
+    # 保存并打印
+    with open(args.output, "w", encoding="utf-8") as f:
+        f.write("\n".join(report_lines))
+    
+    print("\n".join(report_lines))
+    print("\n" + "="*80)
+    print(f"✅ 报告已保存至: {args.output}")
+    print("="*80)
+
+if __name__ == "__main__":
+    main()
