@@ -1,0 +1,6 @@
+        print(f"[Layer {layer_idx}] forward_fused_infer_attention 条件判断:")
+        print(f"  _EXTRA_CTX.capturing={_EXTRA_CTX.capturing}, self.head_size={self.head_size}")
+        print(f"  attn_state={attn_metadata.attn_state}, DecodeOnly={AscendAttentionState.DecodeOnly}")
+        print(f"  sliding_window={self.sliding_window}, sinks={self.sinks}")
+        print(f"  seq_lens.shape[0]={attn_metadata.seq_lens.shape[0]}, query.size(0)={query.size(0)}")
+        print(f"  attn_type={self.attn_type}, ENCODER_DECODER={AttentionType.ENCODER_DECODER}")
