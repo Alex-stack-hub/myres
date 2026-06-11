@@ -1,0 +1,36 @@
+现在有启动图模式gemma4模型失败的问题,eager模式正常，图模式启动vllm报错
+
+```
+File "/home/tongpan/vllm-ascend_tp/vllm_ascend/compilation/acl_graph.py", line 202, in __call__
+    output = self.runnable(*args, **kwargs)
+File "vllm/model_executor/models/gemma4_mm.py", line 1364, in forward
+    hidden_states = self.language_model.model(...)
+File "vllm/model_executor/models/gemma4.py", line 1272, in forward
+File "vllm/model_executor/layers/attention/attention.py", line 723, in unified_attention_with_output
+    self.impl.forward(...)
+File "/home/tongpan/vllm-ascend_tp/vllm_ascend/attention/attention_v1.py", line 1443, in forward
+    attn_output = self.forward_impl(query, key, value, kv_cache, attn_metadata, output_padded)
+File "/home/tongpan/vllm-ascend_tp/vllm_ascend/attention/attention_v1.py", line 1378, in forward_impl
+    output = self.forward_fused_infer_attention(query, key, value, attn_metadata, output, kv_cache)
+File "/home/tongpan/vllm-ascend_tp/vllm_ascend/attention/attention_v1.py", line 1159, in forward_fused_infer_attention
+    attn_output, num_tokens = self.full_graph_fia(query, key, value, attn_metadata, output)
+File "/home/tongpan/vllm-ascend_tp/vllm_ascend/attention/attention_v1.py", line 916, in full_graph_fia
+    handle = torch.npu.graph_task_group_end(stream)
+RuntimeError: The Inner error is reported as above. The current working operator name is aclnnFusedInferAttentionScoreV5.
+```
+查看算子日志
+
+**OP-level root error** — `aclnnFusedInferAttentionScoreV5` workspace mismatch (error 161002):
+[ERROR] OP(pid): [individual_op_api.cpp:176][NNOP][NnopbaseRunWithWorkspace] errno[1771230784]
+  OpName:[FusedInferAttentionScore_0] Value 55664128 for parameter workspaceLen is invalid.
+  Reason: The passed workspace size 55664128 does not meet the workspace size 104871936 actually required by the operator.
+[ERROR] OP(pid): [individual_op_api.cpp:34][NNOP][NnopbaseOpLogE] errno[161002]
+  OpName:[FusedInferAttentionScore_0] Check NnopbaseRunWithWorkspace(executor, stream, workspace, workspaceSize) failed
+```
+```
+[ERROR] APP(pid): ExecFuncOpApi:OpParamMaker.cpp:458: "[PTA]:Custom hand error:operator():../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:536 NPU function error: device error type 0, error code is 161002"
+[ERROR] APP(pid): ExecFuncOpApi:OpParamMaker.cpp:462: "[PTA]:Custom hand fail! name=aclnnFusedInferAttentionScoreV5, ret=100000"
+Invalid_Argument(EZ1010): Value 55664128 for parameter workspaceLen is invalid. Reason: The passed workspace size 55664128 does not meet the workspace size 104871936 actually required by the operator.
+7.2 Framework-level errors (Python/vllm traceback)
+**Primary exception** — `aclnnFusedInferAttentionScoreV5` inside `torch.npu.graph()` capture:
+当前怀疑原因为gemma4的注意力为交错层，head_dim为256和512层，可能是因为不同层用了同名算子，256的时候申请了FIA算子的workspace，但是后面到512就不够了，现在请你确认是否是这个问题，可以使用判断head_dim的方式绕过验证。
