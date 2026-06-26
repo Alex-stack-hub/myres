@@ -1,0 +1,7 @@
+原因是这些 A2 attention 单测会直接构造 Attention Impl，没有 set_current_vllm_config() context，所以 needs_layer_aware_fia_graph_replay() 内部直接 get_current_vllm_config() 会失败。
+
+我已经修了并推送：
+attention_v1.py 调用点恢复传显式 vllm_config
+utils.py 保留 @lru_cache(maxsize=1)，但只缓存 hashable 的 model_types tuple
+避免了之前两个问题：不直接 cache VllmConfig，不会 unhashable type: VllmConfig
+不依赖 current config context，A2 单测不会再报 config not set
