@@ -1,0 +1,43 @@
+use_large_head_fallback = self._should_use_large_head_attention_fallback()
+
+if (
+    # Decode 阶段：正常使用 paged attention 的场景走这里。
+    # 同时，A2/A3 上 Gemma4 的 512 head 层不能走 FIA TND，
+    # 所以即使 using_paged_attention 为 False，也需要强制走 paged attention 规避。
+    attn_metadata.attn_state == AscendAttentionState.DecodeOnly
+    and self.sliding_window is None
+    and (
+        using_paged_attention(num_tokens, self.vllm_config)
+        or use_large_head_fallback
+    )
+):
+    output = self.forward_paged_attention(query, attn_metadata, output)
+
+elif (
+    # Prefill 阶段：只处理 A2/A3 上需要规避 FIA TND 的 large-head 层。
+    # 典型场景是 Gemma4 global attention 层 head_size=512。
+    not _EXTRA_CTX.capturing
+    and use_large_head_fallback
+    # KV sharing 层不能直接使用当前 key/value，
+    # 因此这里仅处理非 KV sharing 的普通层。
+    and self.kv_sharing_target_layer_name is None
+    # 确保当前 key/value 是可直接用于 dense TND attention 的 prefill 输入。
+    and key is not None
+    and value is not None
+    and query.shape[0] == key.shape[0]
+    and attn_metadata.attn_state in (
+        AscendAttentionState.PrefillNoCache,
+        AscendAttentionState.ChunkedPrefill,
+    )
+):
+    output = self._forward_large_head_prefill_attention(
+        query, key, value, attn_metadata, output
+    )
+
+else:
+    # 默认路径：所有不受影响的场景都保持原来的 FIA 行为。
+    # 包括 A5、非 512 head 层、图 capture 阶段、sliding-window 层、
+    # sink attention，以及普通非 Gemma4 模型。
+    output = self.forward_fused_infer_attention(
+        query, key, value, attn_metadata, output, kv_cache
+    )
