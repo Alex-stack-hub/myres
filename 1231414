@@ -1,0 +1,1165 @@
+2026-07-01 09:12:56.175778][UC][E] WorkerProc hit an exception.
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5148, in _replace_gpu_model_runner_function_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4990, in profile_cudagraph_memory
+    result = GPUModelRunner.profile_cudagraph_memory(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6443, in profile_cudagraph_memory
+    self._warmup_and_capture(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6604, in _warmup_and_capture
+    self._dummy_run(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3626, in _dummy_run
+    outputs = self._model_forward(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2856, in _model_forward
+    hidden_states = run_model()
+                    ^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/compilation/acl_graph.py", line 166, in __call__
+    return self.runnable(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4_mm.py", line 1590, in forward
+    hidden_states = self.language_model.model(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 520, in __call__
+    return self.aot_compiled_fn(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_dynamo/aot_compile.py", line 124, in __call__
+    return self.fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4.py", line 1278, in forward
+    def forward(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/caching.py", line 217, in __call__
+    return self.optimized_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 5, in execution_fn
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/piecewise_backend.py", line 380, in __call__
+    return range_entry.runnable(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 2865, in wrapper
+    return pytree.tree_unflatten(compiled_fn(*args, **kwargs), spec)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 1148, in forward
+    return compiled_fn(full_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 357, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 134, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 531, in wrapper
+    return compiled_fn(runtime_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 729, in inner_fn
+    outs = compiled_fn(args)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 108, in g
+    return f(*args)
+           ^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/npu_fx_compiler.py", line 507, in __call__
+    gm_result = self.run_kernel(*args, **kwargs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2760, in kernel
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 823, in __call__
+    return self.fx_run_eagerly(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 894, in fx_run_eagerly
+    return self.fx_forward(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 407, in forward
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 819, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/kv_transfer_utils.py", line 40, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/attention.py", line 751, in unified_attention_with_output
+    self.impl.forward(
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1485, in forward
+    attn_output = self.forward_impl(query, key, value, kv_cache, attn_metadata, output_padded)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1419, in forward_impl
+    output = self.forward_fused_infer_attention(query, key, value, attn_metadata, output, kv_cache)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1286, in forward_fused_infer_attention
+    attn_output, _ = torch_npu.npu_fused_infer_attention_score(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 1209, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12514, Device:3, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12514] 2026-07-01-09:12:54.886.797 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5108, in _torch_cuda_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5150, in _replace_gpu_model_runner_function_wrapper
+    raise RuntimeError(f"NPUModelRunner failed, error is {e}")
+RuntimeError: NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12514, Device:3, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12514] 2026-07-01-09:12:54.886.797 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 982, in worker_busy_loop
+    output = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/worker.py", line 531, in determine_available_memory
+    npugraph_memory_estimate = self.model_runner.profile_cudagraph_memory()
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5117, in _torch_cuda_wrapper
+    raise RuntimeError(f"NPUModelRunner init failed, error is {e}")
+RuntimeError: NPUModelRunner init failed, error is NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12514, Device:3, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12514] 2026-07-01-09:12:54.886.797 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5148, in _replace_gpu_model_runner_function_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4990, in profile_cudagraph_memory
+    result = GPUModelRunner.profile_cudagraph_memory(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6443, in profile_cudagraph_memory
+    self._warmup_and_capture(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6604, in _warmup_and_capture
+    self._dummy_run(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3626, in _dummy_run
+    outputs = self._model_forward(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2856, in _model_forward
+    hidden_states = run_model()
+                    ^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/compilation/acl_graph.py", line 166, in __call__
+    return self.runnable(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4_mm.py", line 1590, in forward
+    hidden_states = self.language_model.model(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 520, in __call__
+    return self.aot_compiled_fn(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_dynamo/aot_compile.py", line 124, in __call__
+    return self.fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4.py", line 1278, in forward
+    def forward(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/caching.py", line 217, in __call__
+    return self.optimized_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 5, in execution_fn
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/piecewise_backend.py", line 380, in __call__
+    return range_entry.runnable(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 2865, in wrapper
+    return pytree.tree_unflatten(compiled_fn(*args, **kwargs), spec)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 1148, in forward
+    return compiled_fn(full_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 357, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 134, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 531, in wrapper
+    return compiled_fn(runtime_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 729, in inner_fn
+    outs = compiled_fn(args)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 108, in g
+    return f(*args)
+           ^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/npu_fx_compiler.py", line 507, in __call__
+    gm_result = self.run_kernel(*args, **kwargs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2760, in kernel
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 823, in __call__
+    return self.fx_run_eagerly(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 894, in fx_run_eagerly
+    return self.fx_forward(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 407, in forward
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 819, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/kv_transfer_utils.py", line 40, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/attention.py", line 751, in unified_attention_with_output
+    self.impl.forward(
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1485, in forward
+    attn_output = self.forward_impl(query, key, value, kv_cache, attn_metadata, output_padded)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1419, in forward_impl
+    output = self.forward_fused_infer_attention(query, key, value, attn_metadata, output, kv_cache)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1286, in forward_fused_infer_attention
+    attn_output, _ = torch_npu.npu_fused_infer_attention_score(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 1209, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12514, Device:3, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12514] 2026-07-01-09:12:54.886.797 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5108, in _torch_cuda_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5150, in _replace_gpu_model_runner_function_wrapper
+    raise RuntimeError(f"NPUModelRunner failed, error is {e}")
+RuntimeError: NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12514, Device:3, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12514] 2026-07-01-09:12:54.886.797 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 982, in worker_busy_loop
+    output = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/worker.py", line 531, in determine_available_memory
+    npugraph_memory_estimate = self.model_runner.profile_cudagraph_memory()
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5117, in _torch_cuda_wrapper
+    raise RuntimeError(f"NPUModelRunner init failed, error is {e}")
+RuntimeError: NPUModelRunner init failed, error is NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12514, Device:3, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12514] 2026-07-01-09:12:54.886.797 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+ [12514,12514][multiproc_executor.py:987,worker_busy_loop]
+[2026-07-01 09:12:56.277073][UC][E] WorkerProc hit an exception.
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5148, in _replace_gpu_model_runner_function_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4990, in profile_cudagraph_memory
+    result = GPUModelRunner.profile_cudagraph_memory(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6443, in profile_cudagraph_memory
+    self._warmup_and_capture(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6604, in _warmup_and_capture
+    self._dummy_run(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3626, in _dummy_run
+    outputs = self._model_forward(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2856, in _model_forward
+    hidden_states = run_model()
+                    ^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/compilation/acl_graph.py", line 166, in __call__
+    return self.runnable(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4_mm.py", line 1590, in forward
+    hidden_states = self.language_model.model(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 520, in __call__
+    return self.aot_compiled_fn(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_dynamo/aot_compile.py", line 124, in __call__
+    return self.fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4.py", line 1278, in forward
+    def forward(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/caching.py", line 217, in __call__
+    return self.optimized_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 5, in execution_fn
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/piecewise_backend.py", line 380, in __call__
+    return range_entry.runnable(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 2865, in wrapper
+    return pytree.tree_unflatten(compiled_fn(*args, **kwargs), spec)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 1148, in forward
+    return compiled_fn(full_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 357, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 134, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 531, in wrapper
+    return compiled_fn(runtime_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 729, in inner_fn
+    outs = compiled_fn(args)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 108, in g
+    return f(*args)
+           ^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/npu_fx_compiler.py", line 507, in __call__
+    gm_result = self.run_kernel(*args, **kwargs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2760, in kernel
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 823, in __call__
+    return self.fx_run_eagerly(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 894, in fx_run_eagerly
+    return self.fx_forward(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 407, in forward
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 819, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/kv_transfer_utils.py", line 40, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/attention.py", line 751, in unified_attention_with_output
+    self.impl.forward(
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1485, in forward
+    attn_output = self.forward_impl(query, key, value, kv_cache, attn_metadata, output_padded)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1419, in forward_impl
+    output = self.forward_fused_infer_attention(query, key, value, attn_metadata, output, kv_cache)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1286, in forward_fused_infer_attention
+    attn_output, _ = torch_npu.npu_fused_infer_attention_score(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 1209, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12512, Device:1, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12512] 2026-07-01-09:12:54.904.907 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5108, in _torch_cuda_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5150, in _replace_gpu_model_runner_function_wrapper
+    raise RuntimeError(f"NPUModelRunner failed, error is {e}")
+RuntimeError: NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12512, Device:1, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12512] 2026-07-01-09:12:54.904.907 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 982, in worker_busy_loop
+    output = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/worker.py", line 531, in determine_available_memory
+    npugraph_memory_estimate = self.model_runner.profile_cudagraph_memory()
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5117, in _torch_cuda_wrapper
+    raise RuntimeError(f"NPUModelRunner init failed, error is {e}")
+RuntimeError: NPUModelRunner init failed, error is NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12512, Device:1, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12512] 2026-07-01-09:12:54.904.907 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5148, in _replace_gpu_model_runner_function_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4990, in profile_cudagraph_memory
+    result = GPUModelRunner.profile_cudagraph_memory(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6443, in profile_cudagraph_memory
+    self._warmup_and_capture(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6604, in _warmup_and_capture
+    self._dummy_run(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3626, in _dummy_run
+    outputs = self._model_forward(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2856, in _model_forward
+    hidden_states = run_model()
+                    ^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/compilation/acl_graph.py", line 166, in __call__
+    return self.runnable(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4_mm.py", line 1590, in forward
+    hidden_states = self.language_model.model(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 520, in __call__
+    return self.aot_compiled_fn(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_dynamo/aot_compile.py", line 124, in __call__
+    return self.fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4.py", line 1278, in forward
+    def forward(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/caching.py", line 217, in __call__
+    return self.optimized_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 5, in execution_fn
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/piecewise_backend.py", line 380, in __call__
+    return range_entry.runnable(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 2865, in wrapper
+    return pytree.tree_unflatten(compiled_fn(*args, **kwargs), spec)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 1148, in forward
+    return compiled_fn(full_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 357, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 134, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 531, in wrapper
+    return compiled_fn(runtime_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 729, in inner_fn
+    outs = compiled_fn(args)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 108, in g
+    return f(*args)
+           ^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/npu_fx_compiler.py", line 507, in __call__
+    gm_result = self.run_kernel(*args, **kwargs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2760, in kernel
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 823, in __call__
+    return self.fx_run_eagerly(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 894, in fx_run_eagerly
+    return self.fx_forward(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 407, in forward
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 819, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/kv_transfer_utils.py", line 40, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/attention.py", line 751, in unified_attention_with_output
+    self.impl.forward(
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1485, in forward
+    attn_output = self.forward_impl(query, key, value, kv_cache, attn_metadata, output_padded)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1419, in forward_impl
+    output = self.forward_fused_infer_attention(query, key, value, attn_metadata, output, kv_cache)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1286, in forward_fused_infer_attention
+    attn_output, _ = torch_npu.npu_fused_infer_attention_score(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 1209, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12512, Device:1, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12512] 2026-07-01-09:12:54.904.907 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5108, in _torch_cuda_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5150, in _replace_gpu_model_runner_function_wrapper
+    raise RuntimeError(f"NPUModelRunner failed, error is {e}")
+RuntimeError: NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12512, Device:1, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12512] 2026-07-01-09:12:54.904.907 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 982, in worker_busy_loop
+    output = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/worker.py", line 531, in determine_available_memory
+    npugraph_memory_estimate = self.model_runner.profile_cudagraph_memory()
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5117, in _torch_cuda_wrapper
+    raise RuntimeError(f"NPUModelRunner init failed, error is {e}")
+RuntimeError: NPUModelRunner init failed, error is NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12512, Device:1, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12512] 2026-07-01-09:12:54.904.907 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+ [12512,12512][multiproc_executor.py:987,worker_busy_loop]
+[2026-07-01 09:12:56.346203][UC][E] WorkerProc hit an exception.
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5148, in _replace_gpu_model_runner_function_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4990, in profile_cudagraph_memory
+    result = GPUModelRunner.profile_cudagraph_memory(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6443, in profile_cudagraph_memory
+    self._warmup_and_capture(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6604, in _warmup_and_capture
+    self._dummy_run(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3626, in _dummy_run
+    outputs = self._model_forward(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2856, in _model_forward
+    hidden_states = run_model()
+                    ^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/compilation/acl_graph.py", line 166, in __call__
+    return self.runnable(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4_mm.py", line 1590, in forward
+    hidden_states = self.language_model.model(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 520, in __call__
+    return self.aot_compiled_fn(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_dynamo/aot_compile.py", line 124, in __call__
+    return self.fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4.py", line 1278, in forward
+    def forward(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/caching.py", line 217, in __call__
+    return self.optimized_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 5, in execution_fn
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/piecewise_backend.py", line 380, in __call__
+    return range_entry.runnable(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 2865, in wrapper
+    return pytree.tree_unflatten(compiled_fn(*args, **kwargs), spec)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 1148, in forward
+    return compiled_fn(full_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 357, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 134, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 531, in wrapper
+    return compiled_fn(runtime_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 729, in inner_fn
+    outs = compiled_fn(args)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 108, in g
+    return f(*args)
+           ^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/npu_fx_compiler.py", line 507, in __call__
+    gm_result = self.run_kernel(*args, **kwargs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2760, in kernel
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 823, in __call__
+    return self.fx_run_eagerly(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 894, in fx_run_eagerly
+    return self.fx_forward(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 407, in forward
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 819, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/kv_transfer_utils.py", line 40, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/attention.py", line 751, in unified_attention_with_output
+    self.impl.forward(
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1485, in forward
+    attn_output = self.forward_impl(query, key, value, kv_cache, attn_metadata, output_padded)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1419, in forward_impl
+    output = self.forward_fused_infer_attention(query, key, value, attn_metadata, output, kv_cache)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1286, in forward_fused_infer_attention
+    attn_output, _ = torch_npu.npu_fused_infer_attention_score(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 1209, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12511, Device:0, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12511] 2026-07-01-09:12:54.981.579 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5108, in _torch_cuda_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5150, in _replace_gpu_model_runner_function_wrapper
+    raise RuntimeError(f"NPUModelRunner failed, error is {e}")
+RuntimeError: NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12511, Device:0, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12511] 2026-07-01-09:12:54.981.579 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 982, in worker_busy_loop
+    output = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/worker.py", line 531, in determine_available_memory
+    npugraph_memory_estimate = self.model_runner.profile_cudagraph_memory()
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5117, in _torch_cuda_wrapper
+    raise RuntimeError(f"NPUModelRunner init failed, error is {e}")
+RuntimeError: NPUModelRunner init failed, error is NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12511, Device:0, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12511] 2026-07-01-09:12:54.981.579 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5148, in _replace_gpu_model_runner_function_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4990, in profile_cudagraph_memory
+    result = GPUModelRunner.profile_cudagraph_memory(self)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6443, in profile_cudagraph_memory
+    self._warmup_and_capture(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/worker/gpu_model_runner.py", line 6604, in _warmup_and_capture
+    self._dummy_run(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 3626, in _dummy_run
+    outputs = self._model_forward(
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 2856, in _model_forward
+    hidden_states = run_model()
+                    ^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/compilation/acl_graph.py", line 166, in __call__
+    return self.runnable(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1776, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/nn/modules/module.py", line 1787, in _call_impl
+    return forward_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4_mm.py", line 1590, in forward
+    hidden_states = self.language_model.model(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/decorators.py", line 520, in __call__
+    return self.aot_compiled_fn(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_dynamo/aot_compile.py", line 124, in __call__
+    return self.fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/models/gemma4.py", line 1278, in forward
+    def forward(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/caching.py", line 217, in __call__
+    return self.optimized_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 5, in execution_fn
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/compilation/piecewise_backend.py", line 380, in __call__
+    return range_entry.runnable(*args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_inductor/compile_fx.py", line 2865, in wrapper
+    return pytree.tree_unflatten(compiled_fn(*args, **kwargs), spec)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/aot_autograd.py", line 1148, in forward
+    return compiled_fn(full_args)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 357, in runtime_wrapper
+    all_outs = call_func_at_runtime_with_args(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 134, in call_func_at_runtime_with_args
+    out = normalize_as_list(f(args))
+                            ^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 531, in wrapper
+    return compiled_fn(runtime_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/runtime_wrappers.py", line 729, in inner_fn
+    outs = compiled_fn(args)
+           ^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_functorch/_aot_autograd/utils.py", line 108, in g
+    return f(*args)
+           ^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/npu_fx_compiler.py", line 507, in __call__
+    gm_result = self.run_kernel(*args, **kwargs)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 2760, in kernel
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 823, in __call__
+    return self.fx_run_eagerly(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch_npu/dynamo/npugraph_ex/_acl_concrete_graph/acl_graph.py", line 894, in fx_run_eagerly
+    return self.fx_forward(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<string>", line 407, in forward
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 819, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/kv_transfer_utils.py", line 40, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/model_executor/layers/attention/attention.py", line 751, in unified_attention_with_output
+    self.impl.forward(
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1485, in forward
+    attn_output = self.forward_impl(query, key, value, kv_cache, attn_metadata, output_padded)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1419, in forward_impl
+    output = self.forward_fused_infer_attention(query, key, value, attn_metadata, output, kv_cache)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/attention/attention_v1.py", line 1286, in forward_fused_infer_attention
+    attn_output, _ = torch_npu.npu_fused_infer_attention_score(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/_ops.py", line 1209, in __call__
+    return self._op(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12511, Device:0, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12511] 2026-07-01-09:12:54.981.579 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5108, in _torch_cuda_wrapper
+    yield
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5150, in _replace_gpu_model_runner_function_wrapper
+    raise RuntimeError(f"NPUModelRunner failed, error is {e}")
+RuntimeError: NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12511, Device:0, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12511] 2026-07-01-09:12:54.981.579 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 982, in worker_busy_loop
+    output = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/torch/utils/_contextlib.py", line 124, in decorate_context
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/worker.py", line 531, in determine_available_memory
+    npugraph_memory_estimate = self.model_runner.profile_cudagraph_memory()
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 4989, in profile_cudagraph_memory
+    with _torch_cuda_wrapper(), _replace_gpu_model_runner_function_wrapper(parent_module_name):
+  File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "/home/xty/vllm-ascend/vllm_ascend/worker/model_runner_v1.py", line 5117, in _torch_cuda_wrapper
+    raise RuntimeError(f"NPUModelRunner init failed, error is {e}")
+RuntimeError: NPUModelRunner init failed, error is NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12511, Device:0, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12511] 2026-07-01-09:12:54.981.579 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+
+ [12511,12511][multiproc_executor.py:987,worker_busy_loop]
+[2026-07-01 09:12:56.351475][UC][E] EngineCore failed to start.
+Traceback (most recent call last):
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 1164, in run_engine_core
+    engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 930, in __init__
+    super().__init__(
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 132, in __init__
+    kv_cache_config = self._initialize_kv_caches(vllm_config)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 257, in _initialize_kv_caches
+    available_gpu_memory = self.model_executor.determine_available_memory()
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/abstract.py", line 147, in determine_available_memory
+    return self.collective_rpc("determine_available_memory")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 404, in collective_rpc
+    return future if non_block else future.result()
+                                    ^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 91, in result
+    return super().result()
+           ^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 95, in _wait_for_response
+    response = self.aggregate(self.get_response())
+                              ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 391, in get_response
+    raise RuntimeError(
+RuntimeError: Worker failed with error 'NPUModelRunner init failed, error is NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+[ERROR] 2026-07-01-09:12:54 (PID:12511, Device:0, RankID:-1) ERR00100 PTA call acl api failed.
+EZ9999: Inner Error!
+EZ9999[PID: 12511] 2026-07-01-09:12:54.981.579 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+        TraceBack (most recent call last):
+       FusedInferAttentionScore do tiling failed, ret is -1.
+       Check NnopbaseExecutorDoTiling(executor) failed
+       Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+       Check NnopbaseExecutorMatchCache(executor) failed
+       Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+', please check the stack trace above for the root cause [12496,12496][core.py:1195,run_engine_core]
+[2026-07-01 09:13:06.164108][UC][E] Worker proc VllmWorker-0 died unexpectedly, shutting down executor. [12496,12804][multiproc_executor.py:284,monitor_workers]
+[2026-07-01 09:13:06.164298][UC][I] [shutdown] Executor: waiting for worker exit count=4 [12496,12804][multiproc_executor.py:428,_ensure_worker_termination]
+(EngineCore pid=12496) Process EngineCore:
+(EngineCore pid=12496) Traceback (most recent call last):
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/multiprocessing/process.py", line 314, in _bootstrap
+(EngineCore pid=12496)     self.run()
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/multiprocessing/process.py", line 108, in run
+(EngineCore pid=12496)     self._target(*self._args, **self._kwargs)
+(EngineCore pid=12496)   File "/home/xty/vllm-ascend/vllm_ascend/patch/platform/patch_balance_schedule.py", line 661, in run_engine_core
+(EngineCore pid=12496)     return _ORIGINAL_RUN_ENGINE_CORE(*args, dp_rank=dp_rank, local_dp_rank=local_dp_rank, **kwargs)
+(EngineCore pid=12496)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 1199, in run_engine_core
+(EngineCore pid=12496)     raise e
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 1164, in run_engine_core
+(EngineCore pid=12496)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=12496)                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=12496)     return func(*args, **kwargs)
+(EngineCore pid=12496)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 930, in __init__
+(EngineCore pid=12496)     super().__init__(
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 132, in __init__
+(EngineCore pid=12496)     kv_cache_config = self._initialize_kv_caches(vllm_config)
+(EngineCore pid=12496)                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=12496)     return func(*args, **kwargs)
+(EngineCore pid=12496)            ^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core.py", line 257, in _initialize_kv_caches
+(EngineCore pid=12496)     available_gpu_memory = self.model_executor.determine_available_memory()
+(EngineCore pid=12496)                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/abstract.py", line 147, in determine_available_memory
+(EngineCore pid=12496)     return self.collective_rpc("determine_available_memory")
+(EngineCore pid=12496)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 404, in collective_rpc
+(EngineCore pid=12496)     return future if non_block else future.result()
+(EngineCore pid=12496)                                     ^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 91, in result
+(EngineCore pid=12496)     return super().result()
+(EngineCore pid=12496)            ^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+(EngineCore pid=12496)     return self.__get_result()
+(EngineCore pid=12496)            ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+(EngineCore pid=12496)     raise self._exception
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 95, in _wait_for_response
+(EngineCore pid=12496)     response = self.aggregate(self.get_response())
+(EngineCore pid=12496)                               ^^^^^^^^^^^^^^^^^^^
+(EngineCore pid=12496)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/executor/multiproc_executor.py", line 391, in get_response
+(EngineCore pid=12496)     raise RuntimeError(
+(EngineCore pid=12496) RuntimeError: Worker failed with error 'NPUModelRunner init failed, error is NPUModelRunner failed, error is npu_fused_infer_attention_score_symint:../third_party/op-plugin/op_plugin/ops/opapi/FusedInferAttentionScoreKernelNpuOpApi.cpp:425 NPU function error: call aclnnFusedInferAttentionScoreV3 failed, error code is 561002
+(EngineCore pid=12496) [ERROR] 2026-07-01-09:12:54 (PID:12511, Device:0, RankID:-1) ERR00100 PTA call acl api failed.
+(EngineCore pid=12496) EZ9999: Inner Error!
+(EngineCore pid=12496) EZ9999[PID: 12511] 2026-07-01-09:12:54.981.579 (EZ9999):  In NO_QUANT rope not exist situation, when input_layout is TND, only query|key|value headDim = 64/128/192 are supported, but got 512[FUNC:CheckFeatureLayout][FILE:fused_infer_attention_score_tiling_check_feature.cpp][LINE:584]
+(EngineCore pid=12496)         TraceBack (most recent call last):
+(EngineCore pid=12496)        FusedInferAttentionScore do tiling failed, ret is -1.
+(EngineCore pid=12496)        Check NnopbaseExecutorDoTiling(executor) failed
+(EngineCore pid=12496)        Check NnopbaseExecutorTilingAndUpdateBinInfo(executor) failed
+(EngineCore pid=12496)        Check NnopbaseExecutorMatchCache(executor) failed
+(EngineCore pid=12496)        Check NnopbaseRunForWorkspace(*executor, workspaceSize) failed
+(EngineCore pid=12496) ', please check the stack trace above for the root cause
+[2026-07-01 09:13:07.470705][UC][I] [shutdown] Executor: all workers exited gracefully [12496,12804][multiproc_executor.py:433,_ensure_worker_termination]
+(APIServer pid=12286) Traceback (most recent call last):
+(APIServer pid=12286)   File "/usr/local/python3.11.15/bin/vllm", line 6, in <module>
+(APIServer pid=12286)     sys.exit(main())
+(APIServer pid=12286)              ^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/entrypoints/cli/main.py", line 95, in main
+(APIServer pid=12286)     args.dispatch_function(args)
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/entrypoints/cli/serve.py", line 148, in cmd
+(APIServer pid=12286)     uvloop.run(run_server(args))
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/uvloop/__init__.py", line 92, in run
+(APIServer pid=12286)     return runner.run(wrapper())
+(APIServer pid=12286)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/asyncio/runners.py", line 118, in run
+(APIServer pid=12286)     return self._loop.run_until_complete(task)
+(APIServer pid=12286)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=12286)   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/uvloop/__init__.py", line 48, in wrapper
+(APIServer pid=12286)     return await main
+(APIServer pid=12286)            ^^^^^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/entrypoints/openai/api_server.py", line 665, in run_server
+(APIServer pid=12286)     await run_server_worker(listen_address, sock, args, **uvicorn_kwargs)
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/entrypoints/openai/api_server.py", line 679, in run_server_worker
+(APIServer pid=12286)     async with build_async_engine_client(
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 210, in __aenter__
+(APIServer pid=12286)     return await anext(self.gen)
+(APIServer pid=12286)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/entrypoints/openai/api_server.py", line 99, in build_async_engine_client
+(APIServer pid=12286)     async with build_async_engine_client_from_engine_args(
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 210, in __aenter__
+(APIServer pid=12286)     return await anext(self.gen)
+(APIServer pid=12286)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/entrypoints/openai/api_server.py", line 135, in build_async_engine_client_from_engine_args
+(APIServer pid=12286)     async_llm = AsyncLLM.from_vllm_config(
+(APIServer pid=12286)                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/async_llm.py", line 217, in from_vllm_config
+(APIServer pid=12286)     return cls(
+(APIServer pid=12286)            ^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/async_llm.py", line 146, in __init__
+(APIServer pid=12286)     self.engine_core = EngineCoreClient.make_async_mp_client(
+(APIServer pid=12286)                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=12286)     return func(*args, **kwargs)
+(APIServer pid=12286)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core_client.py", line 131, in make_async_mp_client
+(APIServer pid=12286)     return AsyncMPClient(*client_args)
+(APIServer pid=12286)            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/tracing/otel.py", line 178, in sync_wrapper
+(APIServer pid=12286)     return func(*args, **kwargs)
+(APIServer pid=12286)            ^^^^^^^^^^^^^^^^^^^^^
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core_client.py", line 948, in __init__
+(APIServer pid=12286)     super().__init__(
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/core_client.py", line 570, in __init__
+(APIServer pid=12286)     with launch_core_engines(
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/contextlib.py", line 144, in __exit__
+(APIServer pid=12286)     next(self.gen)
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/utils.py", line 1190, in launch_core_engines
+(APIServer pid=12286)     wait_for_engine_startup(
+(APIServer pid=12286)   File "/usr/local/python3.11.15/lib/python3.11/site-packages/vllm/v1/engine/utils.py", line 1249, in wait_for_engine_startup
+(APIServer pid=12286)     raise RuntimeError(
+(APIServer pid=12286) RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
