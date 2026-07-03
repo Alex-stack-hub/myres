@@ -1,1 +1,93 @@
-https://chatgpt.com/s/t_6a476361fd0081918ac4a47f4b6f3e54
+最直接告诉我告诉我claude code是如何安排tools ，system ，messages顺序的深度研究 GitHub 深度研究 
+@网页搜索
+ 
+@网页搜索
+ 
+
+我会直接查官方文档和公开仓库/Issue，区分“Claude API 消息格式”和“Claude Code CLI 实际编排”。核心会回答：system、tools、messages 谁在前，以及 tool result 怎么回灌。
+
+我查到一个关键点：Claude Code 不是 OpenAI ChatCompletion 那种把 system 放进 messages[0]。它走 Anthropic Messages API 风格：system 是顶层字段，tools 也是顶层字段，messages 只放 user/assistant 历史。
+
+已思考 47s
+
+最直接结论：
+
+Claude Code 发给模型的逻辑结构不是：
+
+messages: [
+  {"role": "system", "...": "..."},
+  {"role": "user", "...": "..."}
+]
+
+而是 Anthropic Messages API 风格：
+
+{
+  "model": "...",
+  "system": [
+    {"type": "text", "text": "Claude Code 主系统提示词"},
+    {"type": "text", "text": "环境/安全/风格/工具使用规则"}
+  ],
+  "tools": [
+    {"name": "Read", "description": "...", "input_schema": {...}},
+    {"name": "Edit", "description": "...", "input_schema": {...}},
+    {"name": "Bash", "description": "...", "input_schema": {...}}
+  ],
+  "messages": [
+    {"role": "user", "content": [...]},
+    {"role": "assistant", "content": [...]},
+    {"role": "user", "content": [...]}
+  ]
+}
+
+注意：JSON 字段物理顺序不重要，但语义优先级/组装顺序可以理解为：
+
+1. system 顶层系统提示词
+   ├─ Claude Code preset
+   ├─ 安全规则 / 编码规则 / 输出风格
+   ├─ 工作目录 / 环境上下文
+   └─ 可 append 的自定义 systemPrompt
+
+2. tools 顶层工具定义
+   ├─ Bash / Read / Edit / Write / Grep / Glob / TodoWrite / Task ...
+   ├─ MCP 工具
+   └─ 每个工具的 description + input_schema
+
+3. messages 对话历史
+   ├─ user message
+   │   ├─ 真实用户输入
+   │   ├─ <system-reminder>...</system-reminder>
+   │   ├─ CLAUDE.md 项目上下文
+   │   └─ diagnostics / git status / todo 状态等
+   ├─ assistant message
+   │   ├─ text
+   │   └─ tool_use
+   └─ user message
+       └─ tool_result
+
+官方文档明确说，Claude Code/Agent SDK 使用与 Claude Code 相同的 tools、agent loop 和 context management；SDK 示例里也能直接允许 Read、Edit、Bash 等内置工具。 官方还说明 Claude Code 的 claude_code preset 是完整 CLI 系统提示词，包含工具使用指令、代码风格、格式规则、安全规则、工作目录和环境上下文；而 CLAUDE.md 不是直接塞进 system prompt，而是作为 project context 注入 conversation。
+
+工具调用循环是：
+
+messages + system + tools
+        ↓
+Claude 输出 assistant message
+        ↓
+如果要用工具：assistant.content 里出现 tool_use
+        ↓
+Claude Code 本地执行工具，例如 Bash/Edit/Read
+        ↓
+执行结果作为 user message 的 tool_result 回灌
+        ↓
+再次请求模型
+        ↓
+循环直到最终文本回复
+
+Anthropic 官方 tool-use 文档说明：client tools 由你的应用执行；Claude 返回 stop_reason: "tool_use" 和 tool_use blocks；应用执行后再发送 tool_result。 研究论文对 Claude Code 架构的总结也基本是：核心是一个简单 while-loop，调用模型、执行工具、再重复。
+
+一个公开 GitHub Gist 的 Claude Code API request 样例能看到实际形态：顶层有 "messages"，随后是顶层 "system"，再随后是顶层 "tools"；messages 里第一条 user content 前面混入了多个 <system-reminder>，包括 todo、diagnostics、CLAUDE.md 等上下文。 另一个公开提取项目也说明 Claude Code 不只是一个 system prompt，而是大量条件拼接片段、内置工具描述、子 agent prompt 和 utility prompt 的组合。
+
+所以你可以这样记：
+
+Claude Code = 顶层 system + 顶层 tools + messages 历史 + 本地 agent loop
+
+不是 tools 放在 messages 里。不是 system role 放 messages[0]。工具结果才会作为 tool_result 放回 messages。
