@@ -93,3 +93,102 @@ Claude Code = 顶层 system + 顶层 tools + messages 历史 + 本地 agent loop
 不是 tools 放在 messages 里。不是 system role 放 messages[0]。工具结果才会作为 tool_result 放回 messages。
 
 https://chatgpt.com/s/t_6a4766a4f5408191b337f4b47f803924
+
+
+
+你说得对。顺序非常重要。我上条说“JSON 字段物理顺序不重要”只适用于 HTTP JSON 语义；但Anthropic 内部渲染 prompt / prompt cache 前缀匹配时，顺序是固定且极其重要的。
+
+最关键结论：
+
+Anthropic / Claude 的 cache prefix 渲染顺序：
+
+tools  →  system  →  messages
+
+也就是说，tools 在最前面。Anthropic 官方 prompt caching 文档明确写了：cache prefixes 按 tools、system、messages 的顺序创建，并且这是一个层级结构，后面的层级建立在前面的层级之上。
+
+所以你的判断是正确的：
+
+只要 tools 有任何变化
+    ↓
+tools prefix hash 变了
+    ↓
+system cache 失效
+    ↓
+messages cache 失效
+    ↓
+后续上下文基本都要重算
+
+Anthropic 工具缓存文档也直接写了：cache hierarchy 是 tools → system → messages，修改 tool definitions 会 invalidates entire cache，也就是 tools、system、messages 全部失效。
+
+更精确地说：
+
+1. tools
+   - Bash / Read / Edit / Write / Grep / Glob / TodoWrite / Task
+   - MCP tools
+   - Agent / subagent tool
+   - tool description
+   - input_schema
+   - cache_control on last tool
+
+2. system
+   - Claude Code 主 system prompt
+   - 输出风格
+   - 工作目录、shell、OS、环境信息
+   - 自定义 append system prompt
+   - 部分项目级规则/上下文
+
+3. messages
+   - 用户消息
+   - assistant 回复
+   - tool_use
+   - tool_result
+   - system-reminder
+   - 文件读取结果
+   - Todo 状态
+   - diagnostics
+
+Claude Code 官方文档从产品层面把它概括成三层：system prompt layer → project context → conversation，其中 system prompt layer 里包含 core instructions、tool definitions、output style；并说明如果 system prompt 改了，后面所有内容都要重新处理。 但从 Anthropic API/cache 的更底层视角看，最前面其实是：
+
+tools → system → messages
+
+这也是为什么 Claude Code / Agent SDK 的工具顺序抖动会非常致命。
+
+GitHub 上有一个很典型的 Claude Code issue：Agent tool 是 tools[0]，它的 description 里枚举 sub-agents，但顺序是非确定性的；因为它位于 tools[0]，任何 reshuffle 都会导致后面的 remaining tools、system blocks、messages prefix 全部 cache miss。这个 issue 里还给了实测数据：修复前第二次调用 cache_read=0、cache_create≈56296；排序稳定后第二次调用 cache_read≈56370、cache_create=32。
+
+所以如果你要复刻/代理/分析 Claude Code 的请求，重点不是“JSON 字段谁先出现”，而是最终进入模型的 canonical rendered prompt 顺序：
+
+[tools rendered bytes]
+[system rendered bytes]
+[messages rendered bytes]
+
+因此优化策略很明确：
+
+1. tools 必须稳定
+   - 不要动态增删工具
+   - 不要每轮重排工具
+   - 不要在 tool description 里塞 UUID、时间戳、随机路径
+   - MCP tools 要排序稳定
+
+2. cache_control 最好放在稳定边界
+   - 缓存所有工具：放在最后一个 tool 上
+   - 缓存 tools + system：放在最后一个 system block 上
+   - 缓存多轮历史：放在最近一轮末尾的 content block 上
+
+3. 动态工具不要放前缀
+   - 使用 defer_loading / tool search
+   - deferred tools 不进入 system-prompt prefix
+   - 被发现后作为 tool_reference 追加到 conversation history
+   - 这样不会破坏前面的 tools/system cache
+
+Anthropic 官方也明确建议：把 cache_control 放在 tools 数组最后一个工具上，这样会缓存从第一个 tool 到该 breakpoint 的整个 tool definitions prefix。 同一页还说明，defer_loading 的工具不会进入 system-prompt prefix，而是在工具搜索发现后以内联 tool_reference 的形式追加到 conversation history，因此可以保住 prompt cache。
+
+一句话总结：
+
+Claude Code 的缓存命中核心约束：
+
+tools 是最前缀。
+tools 一变，后面全废。
+system 一变，messages 全废。
+messages 只追加，前面还能命中。
+
+所以你说的“tools 如果位于前方，一旦变更，后续缓存无法命中”是准确的，而且这是 Anthropic 官方文档确认的行为。
