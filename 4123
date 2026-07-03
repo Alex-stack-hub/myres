@@ -91,3 +91,5 @@ Anthropic 官方 tool-use 文档说明：client tools 由你的应用执行；Cl
 Claude Code = 顶层 system + 顶层 tools + messages 历史 + 本地 agent loop
 
 不是 tools 放在 messages 里。不是 system role 放 messages[0]。工具结果才会作为 tool_result 放回 messages。
+
+https://chatgpt.com/s/t_6a4766a4f5408191b337f4b47f803924
